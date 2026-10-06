@@ -626,6 +626,7 @@ async function offerFile(filename,text){
   let dl=null; try{ dl = window.claude?.use ? await window.claude.use('downloads') : null; }catch{}
   if(dl){ try{ await dl.save({filename,data:new Blob([text],{type:filename.endsWith('.csv')?'text/csv':'application/json'})}); toast('파일을 저장했습니다'); return; }
     catch(e){ if(e?.code==='declined') return; } }
+  if(!window.claude){ try{ const u=URL.createObjectURL(new Blob([text],{type:filename.endsWith('.csv')?'text/csv':'application/json'})); const l=document.createElement('a'); l.href=u; l.download=filename; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000); toast('파일을 저장했습니다'); return; }catch{} }
   $('#layer').innerHTML=`<div class="scrim" id="scrim"></div><div class="modal" role="dialog" aria-modal="true"><h3>백업 내용</h3><p style="margin:0;color:var(--muted);font-size:.85rem">이 화면에서는 파일 저장을 할 수 없어 내용을 표시합니다. 복사해서 <b>${esc(filename)}</b> 이름으로 메모장에 저장해 두세요.</p><textarea class="dump" id="dump" readonly>${esc(text)}</textarea><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="mClose">닫기</button><button class="btn primary" id="mCopy">복사</button></div></div>`;
   const close=()=>$('#layer').innerHTML=''; $('#mClose').onclick=close; $('#scrim').onclick=close;
   $('#mCopy').onclick=()=>{ navigator.clipboard?.writeText(text).then(()=>toast('복사했습니다'),()=>{ $('#dump').select(); toast('Ctrl+C로 복사하세요'); }) ?? $('#dump').select(); };
